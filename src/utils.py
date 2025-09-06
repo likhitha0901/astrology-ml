@@ -2,32 +2,23 @@ import os
 import joblib
 import json
 
-def save_model(model, path: str):
-    """
-    Save trained model to disk.
-    """
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    joblib.dump(model, path)
-    print(f"✅ Model saved at {path}")
+def save_pipeline(model, scaler, label_encoder, path="models/"):
+    os.makedirs(path, exist_ok=True)
+    joblib.dump(model, os.path.join(path, "astrology_model.pkl"))
+    joblib.dump(scaler, os.path.join(path, "scaler.pkl"))
+    joblib.dump(label_encoder, os.path.join(path, "label_encoder.pkl"))
+    print(f"✅ Model, scaler, and label encoder saved to {path}")
 
-def load_model(path: str):
-    """
-    Load trained model from disk.
-    """
-    if not os.path.exists(path):
-        raise FileNotFoundError(f"❌ Model not found at {path}")
-    return joblib.load(path)
+def load_pipeline(path="models/"):
+    model = joblib.load(os.path.join(path, "astrology_model.pkl"))
+    scaler = joblib.load(os.path.join(path, "scaler.pkl"))
+    label_encoder = joblib.load(os.path.join(path, "label_encoder.pkl"))
+    return model, scaler, label_encoder
 
 def save_json(data: dict, filepath: str):
-    """
-    Save dictionary to JSON file.
-    """
     with open(filepath, "w") as f:
         json.dump(data, f, indent=4)
 
 def load_json(filepath: str) -> dict:
-    """
-    Load dictionary from JSON file.
-    """
     with open(filepath, "r") as f:
         return json.load(f)
