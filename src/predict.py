@@ -1,46 +1,51 @@
 import pandas as pd
 import joblib
-import argparse
-import json
 
-# Load model
+# Load model & scaler
 model = joblib.load("models/astrology_model.pkl")
+scaler = joblib.load("models/scaler.pkl")
 
-def predict(input_data):
-    df = pd.DataFrame([input_data])
-    prediction = model.predict(df)
+FEATURES = [
+    "palm_length_cm",
+    "palm_width_cm",
+    "index_to_ring_ratio",
+    "heart_line_depth",
+    "head_line_length",
+    "life_line_length",
+    "fate_line_presence",
+    "mount_apollo",
+    "mount_mars",
+    "heart_line_breaks"
+]
+
+def predict(features_dict):
+    """
+    Predict zodiac from palmistry features.
+    Args:
+        features_dict (dict): Dictionary with palmistry features.
+    Returns:
+        str: Predicted zodiac label.
+    """
+    df = pd.DataFrame([features_dict])[FEATURES]
+    df_scaled = scaler.transform(df)
+    prediction = model.predict(df_scaled)
     return prediction[0]
 
+# Example usage
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--input", type=str, required=True, help="Path to input JSON file")
-    args = parser.parse_args()
+    sample = {
+        "palm_length_cm": 18.5,
+        "palm_width_cm": 8.0,
+        "index_to_ring_ratio": 0.95,
+        "heart_line_depth": 7.0,
+        "head_line_length": 10.2,
+        "life_line_length": 12.3,
+        "fate_line_presence": 1,
+        "mount_apollo": 3,
+        "mount_mars": 2,
+        "heart_line_breaks": 0
+    }
 
-    with open(args.input, "r") as f:
-        input_data = json.load(f)
+    result = predict(sample)
+    print("🔮 Predicted Zodiac:", result)
 
-    result = predict(input_data)
-    print("🔮 Prediction:", result)
-import pandas as pd
-import joblib
-import argparse
-import json
-
-# Load model
-model = joblib.load("models/astrology_model.pkl")
-
-def predict(input_data):
-    df = pd.DataFrame([input_data])
-    prediction = model.predict(df)
-    return prediction[0]
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--input", type=str, required=True, help="Path to input JSON file")
-    args = parser.parse_args()
-
-    with open(args.input, "r") as f:
-        input_data = json.load(f)
-
-    result = predict(input_data)
-    print("🔮 Prediction:", result)
