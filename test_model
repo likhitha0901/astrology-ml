@@ -1,0 +1,53 @@
+import os
+import pytest
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from src import data_preprocessing
+from src import utils
+
+MODEL_PATH = "models/astrology_model.pkl"
+DATA_PATH = "data/processed_data.csv"
+
+def test_data_loading():
+    """Test if dataset loads correctly."""
+    df = data_preprocessing.load_data(DATA_PATH)
+    assert isinstance(df, pd.DataFrame)
+    assert not df.empty
+
+def test_preprocessing():
+    """Test preprocessing pipeline output shapes."""
+    categorical_cols = ["zodiac_sign"]  # Example categorical
+    feature_cols = [col for col in ["feature1", "feature2", "feature3"] if col in pd.read_csv(DATA_PATH).columns]
+    label_col = "label"
+
+    X, y, df = data_preprocessing.preprocess_data(DATA_PATH, categorical_cols, feature_cols, label_col)
+    assert X.shape[0] == y.shape[0]
+    assert not X.isnull().values.any()
+
+def test_model_training_and_saving():
+    """Test if a model can be trained and saved."""
+    # Load and preprocess
+    df = pd.read_csv(DATA_PATH)
+    feature_cols = [col for col in df.columns if col != "label"]
+    X, y = df[feature_cols], df["label"]
+
+    # Train simple model
+    model = RandomForestClassifier(n_estimators=10, random_state=42)
+    model.fit(X, y)
+
+    # Save and check
+    utils.save_model(model, MODEL_PATH)
+    assert os.path.exists(MODEL_PATH)
+
+def test_model_loading_and_prediction():
+    """Test if saved model loads and predicts correctly."""
+    model = utils.load_model(MODEL_PATH)
+
+    # Load sample data
+    df = pd.read_csv(DATA_PATH)
+    feature_cols = [col for col in df.columns if col != "label"]
+    sample = df[feature_cols].iloc[0:1]
+
+    prediction = model.predict(sample)
+    assert prediction is not None
+    assert len(prediction) == 1
